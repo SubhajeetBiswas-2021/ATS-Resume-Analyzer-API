@@ -1,5 +1,5 @@
 # ATS Resume Analyzer API
-**Version 4.0**
+
 
 A production-grade ATS (Applicant Tracking System) Resume Analyzer built using **FastAPI**.
 It evaluates resumes the way real ATS systems do, using structured parsing, weighted scoring,
