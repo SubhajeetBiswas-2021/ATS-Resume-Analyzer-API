@@ -1,65 +1,234 @@
-Marks criteria:-
-TOTAL ATS SCORE: 100 POINTS
-The system normalizes all component scores to a 0-100 scale for the final ATS score.
+# ATS Resume Analyzer API
+**Version 4.0**
 
-Score Distribution Across 4 Components:
-1. Contact Information - 15 points max
+A production-grade ATS (Applicant Tracking System) Resume Analyzer built using **FastAPI**.
+It evaluates resumes the way real ATS systems do, using structured parsing, weighted scoring,
+and job-specific skill matching.
 
-Email: -5 points if missing (Critical)
-Phone: -5 points if missing (Critical)
-LinkedIn: -3 points if missing (Recommended)
-GitHub: -2 points if missing (Recommended for tech roles)
+---
 
-2. Formatting & Structure - 25 points max
+## Features
 
-Education section: -7 points if missing
-Experience OR Projects: -8 points if BOTH missing
-Skills section: -6 points if missing
-Bullet points: -2 points if missing
-Dates/Timeline: -2 points if missing
+- ATS Score (0–100) with realistic normalization
+- Job-specific skills matching (technical and general)
+- Intelligent resume section extraction
+- Resume-safe grammar and spelling analysis
+- Priority-based actionable recommendations
+- OpenAPI / Swagger documentation
 
-3. Spelling & Grammar - 10 points max
+---
 
-0-2 errors: 10 points (no penalty, just warning)
-3-5 errors: 8 points (-2 penalty)
-6+ errors: 7 points (-3 max penalty)
+## ATS Scoring Overview
 
-4. Skills Matching - 35 points max (Most Important!)
-Based on match percentage between your resume and job requirements:
-Match %Score% of Max90%+35100%75-89%3085%60-74%2570%40-59%1850%20-39%1130%<20%515%
+### Total ATS Score: 100 Points
 
-Total Score Components:
-Contact Info:    15 points (17.6%)
-Formatting:      25 points (29.4%)
-Grammar:         10 points (11.8%)
-Skills Match:    35 points (41.2%) ← Most Critical!
-─────────────────────────────────
-TOTAL:           85 points (Raw Score)
+Internally, the system calculates a raw score out of **85 points** and normalizes it to a **0–100 scale**.
 
-Final Normalization to 100:
-The system then normalizes this 85-point raw score to 100:
-pythonnormalized_score = int((total_score / max_total) * 100)
-# Example: If you get 75/85 points
-# normalized_score = (75/85) * 100 = 88.24 → 88/100
+```python
+normalized_score = int((total_score / max_total) * 100)    
+```
+## Score Distribution (Raw Score: 85 Points)
 
-Score Status Classification:
-Score RangeStatus90-100Excellent - Highly ATS Optimized75-89Good - ATS Shortlist Ready60-74Fair - Needs Minor Improvements45-59Poor - Needs Significant Improvements0-44Very Poor - Likely ATS Rejected
+| Component                | Points | Weight |
+| ------------------------ | ------ | ------ |
+| Contact Information      | 15     | 17.6%  |
+| Formatting and Structure | 25     | 29.4%  |
+| Spelling and Grammar     | 10     | 11.8%  |
+| Skills Matching          | 35     | 41.2%  |
+| Total                    | 85     | 100%   |
 
-Key Insights:
+## Contact Information (15 Points – Critical)
 
-Skills matching is worth 41.2% of your total score - the most critical component!
-Raw maximum = 85 points, but it's normalized to 100 for presentation
-You need 90%+ skills match to get full 35 points in the skills section
-Missing contact info or key sections can severely hurt your score
-The system is designed so even with minor spelling errors, you can still score 100/100 if everything else is perfect
+Missing essential contact details results in immediate ATS penalties.
+
+| Field    | Penalty | Priority                          |
+| -------- | ------- | --------------------------------- |
+| Email    | -5      | Critical                          |
+| Phone    | -5      | Critical                          |
+| LinkedIn | -3      | Recommended                       |
+| GitHub   | -2      | Recommended for technical resumes |
 
 
-So to answer your original question: Yes, the maximum total ATS score a person can get is 100/100, achieved by:
+## Formatting and Structure (25 Points)
 
-Having all contact info (15/15)
-Perfect formatting (25/25)
-No spelling errors (10/10)
-90%+ skills match (35/35)
-Total: 85/85 raw → normalized to 100/100
+Evaluates whether the resume follows an ATS-friendly structure.
 
-To normally test:-http://localhost:8000/docs
+• Education section missing: -7
+
+• Both Experience and Projects missing: -8
+
+• Skills section missing: -6
+
+• No bullet points detected: -2
+
+• Missing dates or timeline: -2
+
+At least one of Experience or Projects must be present.
+
+
+## Spelling and Grammar (10 Points)
+
+Grammar analysis is resume-safe and context-aware.
+| Errors Found     | Score           |
+| ---------------- | --------------- |
+| 0–2 errors       | 10 (no penalty) |
+| 3–5 errors       | 8               |
+| 6 or more errors | 7               |
+
+• Maximum grammar penalty is capped at -3 points
+
+• Technical terms, acronyms, URLs, emails, and dates are ignored
+
+## Skills Matching (35 Points – Most Critical)
+
+Skills are matched directly against the job description, not generic keyword lists.
+
+Match Percentage to Score Mapping
+| Match Percentage | Score |
+| ---------------- | ----- |
+| 90% or higher    | 35    |
+| 75–89%           | 29    |
+| 60–74%           | 24    |
+| 40–59%           | 17    |
+| 20–39%           | 10    |
+| Below 20%        | 5     |
+
+Skills matching contributes the highest weight to the total ATS score.
+
+## Smart Skills Detection
+
+The system prevents common ATS false positives:
+
+• Strict boundary detection for short skills such as C, Go, and R
+
+• Context-aware matching (Go is not equal to going)
+
+• Separation of technical skills and general job requirements
+
+• Multi-word phrase detection such as system design and team leadership
+
+## Resume Section Extraction
+
+The analyzer intelligently extracts all resume sections, including:
+
+• Contact Information
+
+• Education
+
+• Projects
+
+• Experience and Internships
+
+• Certifications
+
+• Achievements and Awards
+
+• Positions of Responsibility
+
+• Skills
+
+• Objective and Summary
+
+• Custom or unknown sections
+
+Supported formats:
+
+• ALL CAPS headers
+
+• Slash-based headers such as LEADERSHIP / ACTIVITIES
+
+• Mixed and non-standard formatting
+
+## ATS Score Classification
+| Score Range | Status                                |
+| ----------- | ------------------------------------- |
+| 90–100      | Excellent – Highly ATS Optimized      |
+| 75–89       | Good – ATS Shortlist Ready            |
+| 60–74       | Fair – Needs Minor Improvements       |
+| 45–59       | Poor – Needs Significant Improvements |
+| 0–44        | Very Poor – Likely ATS Rejected       |
+
+## Maximum Achievable Score
+
+To achieve a perfect ATS score of 100 / 100, a resume must meet:
+
+• Contact Information: 15 / 15
+
+• Formatting and Structure: 25 / 25
+
+• Spelling and Grammar: 10 / 10
+
+• Skills Match (90% or higher): 35 / 35
+
+Raw Score: 85 / 85
+Final ATS Score: 100 / 100
+
+## API Usage
+Analyze Resume
+
+## POST  
+```API
+/analyze
+```
+Form Data
+
+• resume – PDF file
+
+• job_description – text
+
+Response Includes
+
+• ATS score and status
+
+• Section-wise score breakdown
+
+• Skills match analysis
+
+• Extracted resume data
+
+• Actionable recommendations
+
+## Local Development
+
+Install dependencies:
+```python
+pip install -r requirements.txt
+python -m spacy download en_core_web_sm
+```
+
+Run the server:
+```python
+uvicorn main:app --reload
+```
+
+API documentation:
+```TestingSite Swagger
+http://localhost:8000/docs
+```
+## Tech Stack
+
+• FastAPI
+
+• Pydantic v2
+
+• pdfplumber
+
+• PySpellChecker
+
+• Regex-based NLP
+
+• spaCy (optional)
+
+## Use Cases
+
+• ATS simulation and research
+
+• Resume optimization platforms
+
+• Job portals
+
+## Final Note
+
+This ATS Resume Analyzer is logic-driven, explainable, and realistic.
+It reflects how real ATS systems silently reject resumes and explains why.
+
